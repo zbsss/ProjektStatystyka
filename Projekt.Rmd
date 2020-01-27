@@ -184,4 +184,28 @@ Nie widać korelacji
 plot(data$population,data$suicides.100k.pop,main="Wykres liczby samobójstw na 100k pop. od populacji",xlab="Populacja",ylab="Liczby samobójstw na 100k populacji")
 ```
 
+```{r,echo=FALSE}
+t<-c();
 
+for(co in unique(data$generation))
+{
+  t<- c(t, mean(data$suicides.100k.pop[data$generation==co]));
+}
+
+plot(unique(data$generation),t,main="Wykres średniej liczby samobójstw na 100k pop. dla generacji",xlab="Generacja",ylab="Średnia liczba samobójstw na 100k populacji");
+```
+
+
+
+```{r,echo=FALSE}
+plot(data$generation, data$suicides.100k.pop,main="Wykres liczby samobójstw na 100k pop. dla poszczególnych generacji",xlab="Generacja",ylab="Liczba samobójstw na 100k populacji")
+```
+
+### Regresja liniowa
+
+```{r,echo=FALSE}
+plot(data$age [data$age != "5-14 years"],data$suicides.100k.pop[data$age != "5-14 years"],main="Wykres liczby samobójstw na 100k pop. od wieku",xlab="Wiek",ylab="Liczba samobójstw na 100k populacji")
+fit <- lm (data$suicides.100k.pop[data$age != "5-14 years"] ~ data$age [data$age != "5-14 years"])
+summary(fit)
+abline(fit,col="red")
+```
