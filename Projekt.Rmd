@@ -1,0 +1,187 @@
+---
+title: "Projekt"
+author: "Michał Kurleto, Marcin Malcher"
+date: "25 01 2020"
+output: html_document
+---
+
+```{r, echo=FALSE,include=FALSE}
+PATH <- "master.csv"
+data <- read.csv(PATH,header = TRUE, sep=",")
+library(DataExplorer)
+library(maps)
+library(sqldf)
+names(data)[1] <- "country"
+```
+
+# Analiza danych o liczbie samobójstw ze 101 krajów z lat 1985-2016
+https://www.kaggle.com/russellyates88/suicide-rates-overview-1985-to-2016/data?fbclid=IwAR0hNFyjXW5TFxyj_LgnKX48pyMipF8M4Y7XeZwZl6yZk2SrXO6vBClHJCo
+
+
+### Kolumny:
+
+```{r, echo=FALSE}
+names(data)
+```
+
+### Przykładowe dane:
+
+```{r, echo=FALSE}
+head(data,5)
+```
+
+### Podsumowanie dla liczby samobójstw:
+
+```{r, echo=FALSE}
+summary(data$suicides_no)
+```
+
+### Podsumowanie dla liczby samobójstw na 100k populacji:
+
+```{r, echo=FALSE}
+summary(data$suicides.100k.pop)
+```
+
+### Średnia liczba samobójstw na 100k populacji według przedziału wiekowego:
+
+```{r,echo=FALSE}
+sqldf("SELECT DISTINCT data.age, AVG([suicides.100k.pop]) FROM data GROUP BY data.age")
+plot(data$age, data$suicides.100k.pop,xlab="Wiek",ylab="liczba samobójstw na 100k populacji",main="Wykres liczby samobójstw na 100k populacji od wieku")
+```
+
+<br>
+
+### Średnia liczba samobójstw według przedziału wiekowego:
+
+
+```{r,echo=FALSE}
+sqldf("SELECT DISTINCT data.age, AVG([suicides_no]) FROM data GROUP BY data.age")
+plot(data$age, data$suicides_no,xlab="Wiek",ylab="liczba samobójstw",main="Wykres liczby samobójstw od wieku")
+```
+
+Największa liczba samobójstw występuje w przedziale wiekowym 35-54.
+Jak wskazują badania może to mieć związek z kryzysem wieku średniego. 
+
+University of Warwick. "Modern data suggests midlife-crisis risk of suicide in people’s late 40s." ScienceDaily. ScienceDaily, 31 May 2017.
+
+## Liczba samobójstw, a płeć
+
+```{r, echo=FALSE}
+plot(data$sex, data$suicides.100k.pop,main="Wykres liczby samobójstw na 100k populacji od płci",xlab="Płeć",ylab="liczby samobójstw na 100k populacji")
+```
+
+
+### Średnia liczba samobójstw na 100k populacji według płci:
+
+* Mężczyźni:
+
+```{r, echo=FALSE}
+
+mean(data$suicides.100k.pop[data$sex == "male"])
+```
+
+* Kobiety: 
+
+```{r, echo=FALSE}
+mean(data$suicides.100k.pop[data$sex == "female"])
+```
+
+<span style="color: red;">**Wynika z tego że mężczyźni skutecznie popełniają samobójstwa niemal 4 razy częściej niż kobiety**</span>
+
+```{r, echo=FALSE}
+plot(data$age [data$sex=="female"], data$suicides.100k.pop[data$sex=="female"],main="Plot of the number of female suicides per 100k population, against age", xlab = "Age", ylab="Number of suicides per 100k population")
+plot(data$age [data$sex=="male"], data$suicides.100k.pop[data$sex=="male"],main="Plot of the number of male suicides per 100k population, against age", xlab = "Age", ylab="Number of suicides per 100k population")
+```
+
+Jak widać na wykresie największa różnica w liczbie samobójstw pomiędzy kobietami i mężczynami występuje dla przedziału wiekowego 35-54.
+
+Średnia liczba samobójstw dla przedziału wiekowego 35-54:
+
+* Mężczyźni: 
+
+```{r, echo=FALSE}
+mean(data$suicides.100k.pop[data$sex == "male" & data$age == "35-54 years"])
+```
+* Kobiety: 
+
+```{r,echo=FALSE}
+mean(data$suicides.100k.pop[data$sex == "female" & data$age == "35-54 years"])
+```
+
+### Top 10 krajów z największą średnią samobójstw na 100k populacji:
+
+```{r, echo=FALSE}
+#dodac gdzie jest najmniej
+
+head(sqldf("select data.country,avg([suicides.100k.pop]) from data group by data.country order by avg([suicides.100k.pop]) desc"),10)
+```
+
+Polska: 
+
+```{r,echo=FALSE}
+sqldf("select data.country,avg([suicides.100k.pop]) from data  where data.country='Poland' group by data.country order by avg([suicides.100k.pop]) desc ")
+```
+
+### Top 10 krajów z największą średnią liczbą samobójstw:
+
+```{r, echo=FALSE}
+#dodac gdzie jest najmniej
+
+head(sqldf("select data.country,avg([suicides_no]) from data group by data.country order by avg([suicides_no]) desc"),10)
+```
+
+Polska: 
+
+```{r,echo=FALSE}
+sqldf("select data.country,avg([suicides_no]) from data  where data.country='Poland' group by data.country order by avg([suicides_no]) desc ")
+```
+
+
+## Wskaźniki jakości życia, a liczba samobójstw
+
+```{r, echo=FALSE}
+plot(data$gdp_per_capita....,data$suicides.100k.pop,main="Wykres liczby samobójstw na 100k populacji od PKB per capita",xlab="PKB per capita",ylab="liczba samobójstw na 100k populacji")
+```
+
+Liczba samobójstw maleje wraz ze wzrostem PKB per capita.
+
+```{r, echo=FALSE}
+plot(data$HDI.for.year, data$suicides.100k.pop,main="Wykres liczby samobójstw na 100k populacji od WRS",xlab="WRS",ylab="liczba samobójstw na 100k populacji")
+```
+
+WRS - Wskaźnik rozwoju społecznego (ang. HDI)<br><br>
+**Jak widać liczba samobójstw jest największa dla krajów o "średnim poziomie rozwoju społeczeństwa" (według klasyfikacji ONZ, państwa między 0,5 a 0,8 pkt. WRS )**
+
+
+```{r, echo=FALSE}
+t <- c()
+s <- c()
+for(y in unique(data$year)) {t <- c(t, y); s <- c(s, mean(data$suicides.100k.pop[data$year == y]))}
+
+plot(t,s,main="Wykres średniej liczby samobójstw na 100k pop. od roku ",xlab="Rok",ylab="Średnia liczba samobójstw na 100k populacji")
+```
+
+
+```{r, echo=FALSE}
+u<-c()
+t<-c()
+s<-c()
+
+for(co in unique(data$country))
+{
+  u<- c(u,co)
+  t<- c(t, mean(data$suicides.100k.pop[data$country==co]));
+  s<- c(s, mean(data$population[data$country == co]));
+}
+
+plot(s,t,main="Wykres średniej liczby samobójstw na 100k pop. od populacji",xlab="Populacja",ylab="Średniej liczby samobójstw na 100k pop.")
+```
+
+Nie widać korelacji
+
+
+```{r, echo=FALSE}
+plot(data$population,data$suicides.100k.pop,main="Wykres liczby samobójstw na 100k pop. od populacji",xlab="Populacja",ylab="Liczby samobójstw na 100k populacji")
+```
+
+
